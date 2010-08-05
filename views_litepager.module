@@ -61,7 +61,7 @@ function views_litepager_theme() {
  * Theming function for rendering the Lite pager
  * This code is based on theme_pager()
  */
-function theme_views_litepager($tags, $limit, $element, $parameters) {
+function theme_views_litepager($tags, $limit, $element, $parameters = array()) {
   global $pager_page_array, $pager_total;
 
   $li_first = theme('pager_first', (isset($tags[0]) ? $tags[0] : t('« first')), $limit, $element, $parameters);
