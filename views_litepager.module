@@ -23,7 +23,7 @@ function views_litepager_views_pre_execute(&$view) {
     // total rows in query
     $pager_total_items[$view->pager['element']] = ($view->pager['items_per_page'] * $min_pages) + 1;
     // total pages
-    $pager_total[$view->pager['element']] = ceil($pager_total_items[$view->pager['element']] / $view->pager['items_per_page']);
+    $pager_total[$view->pager['element']] = (int)ceil($pager_total_items[$view->pager['element']] / $view->pager['items_per_page']);
     // If the requested page was within range. $this->pager['current_page']
     // defaults to 0 so we don't need to set it in an out-of-range condition.
     if (!empty($pager_page_array[$view->pager['element']])) {
@@ -33,6 +33,23 @@ function views_litepager_views_pre_execute(&$view) {
       }
     }
     $pager_page_array[$view->pager['element']] = $view->pager['current_page'];
+  }
+}
+
+/**
+ * Implement hook_views_pre_render().
+ */
+function views_litepager_views_pre_render(&$view) {
+  if ($view->pager['litepager']) {
+    
+    // Turn the $user_pager variable back on for the rendering process
+    $view->pager['use_pager'] = TRUE;
+    
+    // Make this the last page, if the $items_per_page is > the results
+    global $pager_total;
+    if (count($view->result) < $view->pager['items_per_page']) {
+      $pager_total[$view->pager['element']] = $view->pager['current_page'] + 1;
+    }
   }
 }
 
@@ -100,11 +117,6 @@ function theme_views_litepager($tags, $limit, $element, $parameters = array()) {
 function views_litepager_preprocess_views_view(&$vars) {
   if (!empty($vars['view']->pager['litepager'])) {
     $exposed_input = isset($vars['view']->exposed_data_raw) ? $vars['view']->exposed_data_raw : NULL;
-    
-    global $pager_total;
-    if (count($vars['view']->result) < $vars['view']->pager['items_per_page']) {
-      $pager_total[$vars['view']->pager['element']] = $vars['view']->pager['current_page'] + 1;
-    }
     $vars['pager'] = theme('views_litepager', $exposed_input, $vars['view']->pager['items_per_page'], $vars['view']->pager['element']);
   }
 }
