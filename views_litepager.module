@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Implement hook_views_pre_execute().
  */
@@ -17,7 +16,7 @@ function views_litepager_views_pre_execute(&$view) {
     global $pager_page_array, $pager_total, $pager_total_items;
     // What page was requested:
     $pager_page_array = isset($_GET['page']) ? explode(',', $_GET['page']) : array();
-    $current_page = $pager_page_array[$view->pager['element']];
+    $current_page = !empty($pager_page_array) ? $pager_page_array[$view->pager['element']] : 0;
     $min_pages = max($current_page + 1, 2);
     // total rows in query
     $pager_total_items[$view->pager['element']] = ($view->pager['items_per_page'] * $min_pages) + 1;
@@ -39,7 +38,7 @@ function views_litepager_views_pre_execute(&$view) {
  * Implement hook_views_pre_render().
  */
 function views_litepager_views_pre_render(&$view) {
-  if ($view->pager['litepager']) {
+  if (!empty($view->pager['litepager'])) {
     
     // Turn the $user_pager variable back on for the rendering process
     $view->pager['use_pager'] = TRUE;
