@@ -1,4 +1,3 @@
-// $Id$
 
 Module: Views Litepager
 Author: Nathan Rambeck <http://nathan.rambeck.org>

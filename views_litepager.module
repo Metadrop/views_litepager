@@ -1,6 +1,5 @@
 <?php
 
-// $Id$
 
 /**
  * Implement hook_views_pre_execute().
