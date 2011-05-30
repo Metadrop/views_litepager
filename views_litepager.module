@@ -1,120 +1,83 @@
 <?php
 
 /**
- * Implement hook_views_pre_execute().
+ * Views Litepager module
  */
-function views_litepager_views_pre_execute(&$view) {
-  if ($view->pager['use_pager'] === 'lite') {
-    
-    // Prevent views from executing a count query
-    $view->get_total_rows = FALSE;
-    $view->pager['use_pager'] = FALSE;
-    
-    // Enable flag so we can theme the Lite pager later
-    $view->pager['litepager'] = TRUE;
-    
-    global $pager_page_array, $pager_total, $pager_total_items;
-    // What page was requested:
-    $pager_page_array = isset($_GET['page']) ? explode(',', $_GET['page']) : array();
-    $current_page = !empty($pager_page_array) ? $pager_page_array[$view->pager['element']] : 0;
-    $min_pages = max($current_page + 1, 2);
-    // total rows in query
-    $pager_total_items[$view->pager['element']] = ($view->pager['items_per_page'] * $min_pages) + 1;
-    // total pages
-    $pager_total[$view->pager['element']] = (int)ceil($pager_total_items[$view->pager['element']] / $view->pager['items_per_page']);
-    // If the requested page was within range. $this->pager['current_page']
-    // defaults to 0 so we don't need to set it in an out-of-range condition.
-    if (!empty($pager_page_array[$view->pager['element']])) {
-      $page = intval($pager_page_array[$view->pager['element']]);
-      if ($page > 0 && $page < $pager_total[$view->pager['element']]) {
-        $view->pager['current_page'] = $page;
-      }
-    }
-    $pager_page_array[$view->pager['element']] = $view->pager['current_page'];
-  }
-}
 
 /**
- * Implement hook_views_pre_render().
+ * Implements hook_views_api().
  */
-function views_litepager_views_pre_render(&$view) {
-  if (!empty($view->pager['litepager'])) {
-    
-    // Turn the $user_pager variable back on for the rendering process
-    $view->pager['use_pager'] = TRUE;
-    
-    // Make this the last page, if the $items_per_page is > the results
-    global $pager_total;
-    if (count($view->result) < $view->pager['items_per_page']) {
-      $pager_total[$view->pager['element']] = $view->pager['current_page'] + 1;
-    }
-  }
-}
-
-
-/**
- * Implement hook_form_alter().
- * Add Lite pager option to Views UI
- */
-function views_litepager_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'views_ui_edit_display_form' && $form_state['section'] == 'use_pager') {
-    $form['use_pager']['#options']['lite'] = t('Lite pager');
-  }
-}
-
-/**
- * Implement hook_theme().
- * Add a theme function for the Lite pager
- */
-function views_litepager_theme() {
+function views_litepager_views_api() {
   return array(
-    'views_litepager' => array('tags' => array(), 'limit' => 10, 'element' => 0, 'parameters' => array())
+    'api' => 3.0,
   );
 }
 
+
 /**
- * Theming function for rendering the Lite pager
- * This code is based on theme_pager()
+ * Implements hook_theme().
  */
-function theme_views_litepager($tags, $limit, $element, $parameters = array()) {
-  global $pager_page_array, $pager_total;
-
-  $li_first = theme('pager_first', (isset($tags[0]) ? $tags[0] : t('« first')), $limit, $element, $parameters);
-  $li_previous = theme('pager_previous', (isset($tags[1]) ? $tags[1] : t('‹ previous')), $limit, $element, 1, $parameters);
-  $li_next = theme('pager_next', (isset($tags[3]) ? $tags[3] : t('next ›')), $limit, $element, 1, $parameters);
-
-  if ($pager_total[$element] > 1) {
-    if ($li_first) {
-      $items[] = array(
-        'class' => 'pager-first',
-        'data' => $li_first,
-      );
-    }
-    if ($li_previous) {
-      $items[] = array(
-        'class' => 'pager-previous',
-        'data' => $li_previous,
-      );
-    }
-
-    // End generation.
-    if ($li_next) {
-      $items[] = array(
-        'class' => 'pager-next',
-        'data' => $li_next,
-      );
-    }
-    return theme('item_list', $items, NULL, 'ul', array('class' => 'pager'));
-  }
+function views_litepager_theme() {
+  return array(
+    'pager_lite' => array(
+      'arguments' => array('tags' => array(), 'limit' => 10, 'element' => 0, 'parameters' => array()),
+    ),
+    'pager_lite_next' => array(
+      'arguments' => array('text' => NULL, 'limit' => NULL, 'element' => 0, 'interval' => 1, 'parameters' => array()),
+    ),
+  );
 }
 
-/**
- * Preprocess function for the primary view template
- * Add the Lite pager to the View template
- */
-function views_litepager_preprocess_views_view(&$vars) {
-  if (!empty($vars['view']->pager['litepager'])) {
-    $exposed_input = isset($vars['view']->exposed_data_raw) ? $vars['view']->exposed_data_raw : NULL;
-    $vars['pager'] = theme('views_litepager', $exposed_input, $vars['view']->pager['items_per_page'], $vars['view']->pager['element']);
+function theme_pager_lite($tags = array(), $limit = 10, $element = 0, $parameters = array(), $quantity = 9, $pager = NULL) {
+  global $pager_page_array, $pager_total;
+
+  // current is the page we are currently paged to
+  $pager_current = $pager_page_array[$element] + 1;
+
+
+  $li_previous = theme('pager_previous', (isset($tags[1]) ? $tags[1] : t('‹‹')), $limit, $element, 1, $parameters);
+  if (empty($li_previous)) {
+    $li_previous = "&nbsp;";
   }
+
+  $li_next = theme('pager_lite_next', (isset($tags[3]) ? $tags[3] : t('››')), $limit, $element, 1, $parameters);
+  if (empty($li_next)) {
+    $li_next = "&nbsp;";
+  }
+
+  $items[] = array(
+    'class' => 'pager-previous',
+    'data' => $li_previous,
+  );
+
+  $items[] = array(
+    'class' => 'pager-current',
+    'data' => format_plural($pager_current, 'Page 1', 'Page @count'),
+  );
+
+  $items[] = array(
+    'class' => 'pager-next',
+    'data' => $li_next,
+  );
+  return theme('item_list', $items, NULL, 'ul', array('class' => 'pager'));
+}
+
+function theme_pager_lite_next($text, $limit, $element = 0, $interval = 1, $parameters = array()) {
+  global $pager_page_array, $pager_total;
+  $output = '';
+
+  // If we are anywhere but the last page
+  if ($pager_page_array[$element] <= ($pager_total[$element] - 1) || $pager_page_array[$element] == 0) {
+    $page_new = pager_load_array($pager_page_array[$element] + $interval, $element, $pager_page_array);
+    // If the next page is the last page, mark the link as such.
+    if ($pager_page_array[$element] == $pager_total[$element]) {
+      $output = theme('pager_last', $text, $limit, $element, $parameters);
+    }
+    // The next page is not the last page.
+    else {
+      $output = theme('pager_link', $text, $page_new, $element, $parameters);
+    }
+  }
+
+  return $output;
 }

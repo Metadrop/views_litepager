@@ -1,4 +1,5 @@
-name = View Lite Pager
-description = Provide a lite pager for Views that doesn't require an expensive count query
+name = Views Litepager
+description = Provide a pager plugin for Views that doesn't require an expensive count query
+dependencies[] = views
 core = 6.x
 package = Views
