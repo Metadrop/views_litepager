@@ -25,6 +25,9 @@ class views_litepager_plugin_pager_lite extends views_plugin_pager_full {
         $next_page = FALSE;
       }
     }
+    if (empty($this->options['items_per_page'])) {
+      $next_page = FALSE;
+    }
     if ($next_page) {
       $limit = $this->options['items_per_page'];
       $this->view->query->set_limit($limit + 1);
@@ -32,7 +35,7 @@ class views_litepager_plugin_pager_lite extends views_plugin_pager_full {
   }
 
   function post_execute(&$result) {
-    if (count($result) > $this->options['items_per_page']) {
+    if (!empty($this->options['items_per_page']) && count($result) > $this->options['items_per_page']) {
       array_pop($result);
       $this->next_page = TRUE;
       global $pager_page_array, $pager_total, $pager_total_items;
