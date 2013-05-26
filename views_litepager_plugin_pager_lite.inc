@@ -45,7 +45,7 @@ class views_litepager_plugin_pager_lite extends views_plugin_pager_full {
 
   function render($input) {
     global $pager_page_array, $pager_total, $pager_total_items;
-    if (empty($pager_page_array[$this->options['id']]) && $this->next_page != TRUE) {
+    if (empty($pager_page_array[$this->options['id']]) && empty($this->next_page)) {
       return "";
     }
     else {
