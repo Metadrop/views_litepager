@@ -38,17 +38,21 @@ function theme_pager_lite($variables) {
   $pager_current = $pager_page_array[$element] + 1;
 
   $li_previous = theme('pager_previous', array('text' => (isset($tags['previous']) ? $tags['previous'] : t('‹‹')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_previous_classes = array('pager-previous');
   if (empty($li_previous)) {
     $li_previous = "&nbsp;";
+    $li_previous_classes[] = 'pager-previous-empty';
   }
 
   $li_next = theme('pager_lite_next', array('text' => (isset($tags['next']) ? $tags['next'] : t('››')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
+  $li_next_classes = array('pager-next');
   if (empty($li_next)) {
     $li_next = "&nbsp;";
+    $li_next_classes[] = 'pager-next-empty';
   }
 
   $items[] = array(
-    'class' => array('pager-previous'),
+    'class' => $li_previous_classes,
     'data' => $li_previous,
   );
 
@@ -58,7 +62,7 @@ function theme_pager_lite($variables) {
   );
 
   $items[] = array(
-    'class' => array('pager-next'),
+    'class' => $li_next_classes,
     'data' => $li_next,
   );
   return theme('item_list', array(
