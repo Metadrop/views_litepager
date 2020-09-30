@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * Views Pager plugin definition
+ * Views Pager plugin definition.
  */
 
 /**
@@ -23,4 +24,3 @@ function views_litepager_views_plugins() {
 
   return $plugins;
 }
-

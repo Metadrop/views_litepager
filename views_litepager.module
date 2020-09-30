@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Views Litepager module
+ * @file
+ * Views Litepager module.
  */
 
 /**
@@ -34,7 +35,7 @@ function theme_pager_lite($variables) {
   $parameters = $variables['parameters'];
   global $pager_page_array, $pager_total;
 
-  // current is the page we are currently paged to
+  // Current is the page we are currently paged to.
   $pager_current = $pager_page_array[$element] + 1;
 
   $li_previous = theme('pager_previous', array('text' => (isset($tags['previous']) ? $tags['previous'] : t('‹‹')), 'element' => $element, 'interval' => 1, 'parameters' => $parameters));
@@ -70,8 +71,7 @@ function theme_pager_lite($variables) {
     'title' => NULL,
     'type' => 'ul',
     'attributes' => array('class' => array('pager', 'pager-lite')),
-    )
-  );
+  ));
 }
 
 function theme_pager_lite_next($variables) {
