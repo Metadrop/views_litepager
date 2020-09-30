@@ -31,12 +31,18 @@ class views_litepager_plugin_pager_lite extends views_plugin_pager_full {
     }
   }
 
-  function post_execute(&$result) {
+  function pre_render(&$result) {
     if (count($result) > $this->options['items_per_page']) {
       array_pop($result);
       $this->next_page = TRUE;
       global $pager_page_array, $pager_total, $pager_total_items;
+      if ($pager_page_array[$this->options['id']] == -1) {
+        $this->set_current_page();
+      }
       $pager_total[$this->options['id']] = $pager_page_array[$this->options['id']] + 1;
+    }
+    else {
+      $this->set_current_page();
     }
   }
 
