@@ -6,123 +6,151 @@
  */
 
 /**
- * Implements hook_views_api().
- */
-function views_litepager_views_api() {
-  return array(
-    'api' => 3.0,
-  );
-}
-
-
-/**
  * Implements hook_theme().
  */
 function views_litepager_theme() {
-  return array(
-    'pager_lite' => array(
-      'variables' => array(
-        'tags' => array(),
-        'element' => 0,
-        'parameters' => array(),
-      ),
-    ),
-    'pager_lite_next' => array(
-      'variables' => array(
-        'text' => NULL,
-        'element' => 0,
-        'interval' => 1,
-        'parameters' => array(),
-      ),
-    ),
-  );
+    return [
+        'pager_lite' => [
+            'variables' => [
+                'tags' => [],
+                'element' => 0,
+                'parameters' => [],
+            ],
+        ],
+        'pager_lite_next' => [
+            'variables' => [
+                'text' => NULL,
+                'element' => 0,
+                'interval' => 1,
+                'parameters' => [],
+            ],
+        ],
+    ];
 }
 
-function theme_pager_lite($variables) {
-  $tags = $variables['tags'];
-  $element = $variables['element'];
-  $parameters = $variables['parameters'];
-  global $pager_page_array, $pager_total;
+/**
+ * Implements HOOK_preprocess().
+ */
+function template_preprocess_pager_lite($variables) {
 
-  // Current is the page we are currently paged to.
-  $pager_current = $pager_page_array[$element] + 1;
+    $tags = $variables['tags'];
+    $element = $variables['element'];
+    $parameters = $variables['parameters'];
+    /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
+    $pager_manager = \Drupal::service('pager.manager');
+    $pager = $pager_manager->getPager($element);
+    if (!$pager) {
+        return NULL;
+    }
+    // Current is the page we are currently paged to.
+    $pager_current = $pager->getCurrentPage();
 
-  $li_previous = theme('pager_previous', array(
-    'text' => (isset($tags['previous']) ? $tags['previous'] : t('‹‹')),
-    'element' => $element,
-    'interval' => 1,
-    'parameters' => $parameters,
-  ));
-  $li_previous_classes = array('pager-previous');
-  if (empty($li_previous)) {
-    $li_previous = "&nbsp;";
-    $li_previous_classes[] = 'pager-previous-empty';
-  }
+    $li_previous = [
+        '#theme' => 'pager_previous',
+        '#text' => $tags['previous'] ?? t('‹‹'),
+        '#element' => $element,
+        '#interval' => 1,
+        '#parameters' => $parameters,
+    ];
+    $li_previous_classes = ['pager-previous'];
+    if (empty($li_previous)) {
+        $li_previous = "&nbsp;";
+        $li_previous_classes[] = 'pager-previous-empty';
+    }
 
-  $li_next = theme('pager_lite_next', array(
-    'text' => (isset($tags['next']) ? $tags['next'] : t('››')),
-    'element' => $element,
-    'interval' => 1,
-    'parameters' => $parameters,
-  ));
-  $li_next_classes = array('pager-next');
-  if (empty($li_next)) {
-    $li_next = '&nbsp;';
-    $li_next_classes[] = 'pager-next-empty';
-  }
+    $li_next = [
+        '#theme' => 'pager_previous',
+        '#text' => isset($tags['next']) ?? t('››'),
+        '#element' => $element,
+        '#interval' => 1,
+        '#parameters' => $parameters,
+    ];
+    $li_next_classes = ['pager-next'];
+    if (empty($li_next)) {
+        $li_next = '&nbsp;';
+        $li_next_classes[] = 'pager-next-empty';
+    }
 
-  $items[] = array(
-    'class' => $li_previous_classes,
-    'data' => $li_previous,
-  );
+    $items[] = [
+        'class' => $li_previous_classes,
+        'data' => $li_previous,
+    ];
 
-  $items[] = array(
-    'class' => array('pager-current'),
-    'data' => format_plural($pager_current, 'Page 1', 'Page @count'),
-  );
+    $items[] = [
+        'class' => ['pager-current'],
+        'data' => \Drupal::translation()->formatPlural($pager_current, 'Page 1', 'Page @count'),
+    ];
 
-  $items[] = array(
-    'class' => $li_next_classes,
-    'data' => $li_next,
-  );
-  return theme('item_list', array(
-    'items' => $items,
-    'title' => NULL,
-    'type' => 'ul',
-    'attributes' => array('class' => array('pager', 'pager-lite')),
-  ));
+    $items[] = [
+        'class' => $li_next_classes,
+        'data' => $li_next,
+    ];
+    return [
+        '#theme' => 'item_list',
+        '#items' => $items,
+        '#title' => NULL,
+        '#type' => 'ul',
+        '#attributes' => ['class' => ['pager', 'pager-lite']],
+    ];
 }
 
-function theme_pager_lite_next($variables) {
-  $text = $variables['text'];
-  $element = $variables['element'];
-  $interval = $variables['interval'];
-  $parameters = $variables['parameters'];
+/**
+ * Implements HOOK_preprocess().
+ */
+function template_preprocess_pager_lite_next($variables) {
+    $text = $variables['text'];
+    $element = $variables['element'];
+    $interval = $variables['interval'];
+    $parameters = $variables['parameters'];
+    /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
+    $pager_manager = \Drupal::service('pager.manager');
+    $pager = $pager_manager->getPager($element);
+    $total_items = $pager->getTotalItems();
 
-  global $pager_page_array, $pager_total;
-  $output = '';
+    $output = '';
 
-  // If we are anywhere but the last page.
-  if ((isset($pager_total[$element]) && $pager_page_array[$element] <= ($pager_total[$element] - 1)) || $pager_page_array[$element] == 0) {
-    $page_new = pager_load_array($pager_page_array[$element] + $interval, $element, $pager_page_array);
-    // If the next page is the last page, mark the link as such.
-    if ($pager_page_array[$element] == $pager_total[$element]) {
-      $output = theme('pager_last', array(
-        'text' => $text,
-        'element' => $element,
-        'parameters' => $parameters,
-      ));
+    // If we are anywhere but the last page.
+    if ((isset($total_items) && $pager->getCurrentPage() <= ($total_items - 1)) || $pager->getCurrentPage()  == 0) {
+        // Needs refacto to work with drupal 9.
+        // $page_new = pager_load_array($pager->getCurrentPage() + $interval, $element, $pager_page_array);
+        $page_new = [];
+        // If the next page is the last page, mark the link as such.
+        if ($pager->getCurrentPage() == $total_items) {
+            $output = [
+                '#theme' => 'pager_last',
+                '#text' => $text,
+                '#element' => $element,
+                '#parameters' => $parameters,
+            ];
+        }
+        // The next page is not the last page.
+        else {
+            $output = [
+                '#theme' => 'pager_link',
+                '#text' => $text,
+                '#page_new' => $page_new,
+                '#element' => $element,
+                '#parameters' => $parameters,
+            ];
+        }
     }
-    // The next page is not the last page.
-    else {
-      $output = theme('pager_link', array(
-        'text' => $text,
-        'page_new' => $page_new,
-        'element' => $element,
-        'parameters' => $parameters,
-      ));
-    }
-  }
 
-  return $output;
+    return $output;
+}
+
+function pager_load_array($value, $element, $old_array) {
+    $new_array = $old_array;
+
+    // Look for empty elements.
+    for ($i = 0; $i < $element; $i++) {
+        if (empty($new_array[$i])) {
+
+            // Load found empty element with 0.
+            $new_array[$i] = 0;
+        }
+    }
+
+    // Update the changed element.
+    $new_array[$element] = (int) $value;
+    return $new_array;
 }

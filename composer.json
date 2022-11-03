@@ -1,0 +1,22 @@
+{
+  "name": "drupal/views_litepager",
+  "type": "drupal-module",
+  "description": "description",
+  "keywords": ["Drupal"],
+  "minimum-stability": "dev",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://www.drupal.org/project/views_litepager",
+  "support": {
+    "issues": "https://drupal.org/project/issues/views_litepager",
+    "source": "https://git.drupalcode.org/project/views_litepager"
+  },
+  "authors": [
+    {
+      "name": "Nathan Rambeck"
+    },
+    {
+      "name": "Eduardo Morales",
+      "homepage": "https://metadrop.net"
+    }
+  ]
+}

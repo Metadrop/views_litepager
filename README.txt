@@ -1,6 +1,5 @@
 
 Module: Views Litepager
-Author: Nathan Rambeck <http://nathan.rambeck.org>
 
 Description
 ===========
@@ -14,8 +13,7 @@ core Drupal pager does, but it does allow users to navigate from page to page.
 Installation
 ============
 
-1. Download the module, unzip the source, and put the resulting directory into the 
-   modules/ directory of your Drupal application.
+1. Download the module using the method described on the project page.
 2. Enable the module in Drupal at Administer > Modules > Views
 
 Usage
