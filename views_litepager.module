@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Module file for views_litepager.
+ */
+
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Url;
 
@@ -11,7 +16,7 @@ use Drupal\Core\Url;
  */
 function views_litepager_theme($existing, $type, $theme, $path) {
 
-  // Our extra version of pager
+  // Our extra version of pager.
   $hooks['pager_lite'] = [
     'variables' => [
       'tags' => [],
@@ -28,7 +33,7 @@ function views_litepager_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements HOOK_preprocess().
+ * Implements hook_preprocess().
  *
  * Pager lite preprocess.
  * Part of the logic is from template_preprocess_pager().

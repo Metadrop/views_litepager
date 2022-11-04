@@ -24,7 +24,7 @@ class PagerLite extends Full {
    *
    * @var bool
    */
-  protected $next_page = TRUE;
+  protected bool $nextPage = TRUE;
 
   /**
    * {@inheritdoc}
@@ -67,13 +67,13 @@ class PagerLite extends Full {
     // next page does not exist.
     if (!empty($this->options['total_pages'])) {
       if (($this->getCurrentPage() + 1) >= $this->options['total_pages']) {
-        $this->next_page = FALSE;
+        $this->nextPage = FALSE;
       }
     }
 
     // Set limit to one more item of the default items per page to know
     // if there are more items to display in the next page.
-    if ($this->next_page) {
+    if ($this->nextPage) {
       $limit = $this->getItemsPerPage();
       $this->view->query->setLimit($limit + 1);
     }
@@ -86,7 +86,7 @@ class PagerLite extends Full {
    * calculate if there are next page after the views execution.
    *
    * @return float|int
-   * Total items.
+   *   Total items.
    */
   public function getTotalItems() {
     return $this->getCurrentPage() * $this->getItemsPerPage() + 1;
@@ -96,11 +96,9 @@ class PagerLite extends Full {
    * Calculate if there are next page.
    *
    * @param array $result
-   *   List of items after run the views query,
-   *
-   * @return void
+   *   List of items after run the views query,.
    */
-  public function preRender(&$result) {
+  public function preRender(array &$result) {
 
     // If the items on the result are more than the items per page,
     // then it should exist a next page.
@@ -108,7 +106,7 @@ class PagerLite extends Full {
       // Remove the item to know if there are next page.
       array_pop($result);
 
-      $this->next_page = TRUE;
+      $this->nextPage = TRUE;
       // If the page was not set, then set current page.
       if ($this->getCurrentPage() == -1) {
         $this->setCurrentPage();
@@ -120,7 +118,7 @@ class PagerLite extends Full {
     else {
       // If there are no next page, set current page to 0
       // or the current page id.
-      $this->next_page = FALSE;
+      $this->nextPage = FALSE;
       $this->setCurrentPage();
     }
   }
@@ -134,7 +132,7 @@ class PagerLite extends Full {
    * @return array
    *   Render array pager lite.
    */
-  public function render($input) {
+  public function render(array $input) {
 
     return [
       '#theme' => $this->themeFunctions(),
@@ -142,7 +140,7 @@ class PagerLite extends Full {
       '#element' => $this->options['id'],
       '#parameters' => $input,
       '#route_name' => !empty($this->view->live_preview) ? '<current>' : '<none>',
-      '#has_next' => $this->next_page,
+      '#has_next' => $this->nextPage,
     ];
   }
 
