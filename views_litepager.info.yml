@@ -1,6 +1,6 @@
 name: Views Litepager
 type: module
-description: 'Provide a pager plugin for Views that doesn\'t require an expensive count query'
+description: 'Provide a pager plugin for Views that does not require an expensive count query'
 core_version_requirement: '>=8.9'
 dependencies:
   - drupal:views

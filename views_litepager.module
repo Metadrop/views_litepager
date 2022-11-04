@@ -1,156 +1,107 @@
 <?php
 
-/**
- * @file
- * Views Litepager module.
- */
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_theme().
+ *
+ * Register views theming functions and those that are defined via views plugin
+ * definitions.
  */
-function views_litepager_theme() {
-    return [
-        'pager_lite' => [
-            'variables' => [
-                'tags' => [],
-                'element' => 0,
-                'parameters' => [],
-            ],
-        ],
-        'pager_lite_next' => [
-            'variables' => [
-                'text' => NULL,
-                'element' => 0,
-                'interval' => 1,
-                'parameters' => [],
-            ],
-        ],
-    ];
+function views_litepager_theme($existing, $type, $theme, $path) {
+
+  // Our extra version of pager
+  $hooks['pager_lite'] = [
+    'variables' => [
+      'tags' => [],
+      'quantity' => 9,
+      'element' => 0,
+      'parameters' => [],
+      'route_name' => '<none>',
+      'route_parameters' => [],
+      'has_next' => FALSE,
+    ],
+  ];
+
+  return $hooks;
 }
 
 /**
  * Implements HOOK_preprocess().
+ *
+ * Pager lite preprocess.
+ * Part of the logic is from template_preprocess_pager().
  */
-function template_preprocess_pager_lite($variables) {
+function template_preprocess_pager_lite(&$variables) {
 
-    $tags = $variables['tags'];
-    $element = $variables['element'];
-    $parameters = $variables['parameters'];
-    /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
-    $pager_manager = \Drupal::service('pager.manager');
-    $pager = $pager_manager->getPager($element);
-    if (!$pager) {
-        return NULL;
-    }
-    // Current is the page we are currently paged to.
-    $pager_current = $pager->getCurrentPage();
+  $element = $variables['element'];
+  $parameters = $variables['parameters'];
+  $route_name = $variables['route_name'];
+  $route_parameters = $variables['route_parameters'] ?? [];
+  $has_next = $variables['has_next'] ?? FALSE;
+  $tags = $variables['tags'];
+  $items = [];
 
-    $li_previous = [
-        '#theme' => 'pager_previous',
-        '#text' => $tags['previous'] ?? t('‹‹'),
-        '#element' => $element,
-        '#interval' => 1,
-        '#parameters' => $parameters,
+  /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
+  $pager_manager = \Drupal::service('pager.manager');
+  $pager = $pager_manager->getPager($element);
+
+  // Nothing to do if there is no pager.
+  if (!isset($pager)) {
+    return;
+  }
+
+  $pager_max = $pager->getTotalPages();
+
+  // Nothing to do if there is only one page.
+  if ($pager_max <= 1) {
+    return;
+  }
+
+  $current_page = $pager->getCurrentPage();
+
+  // Create the "first" and "previous" links if we are not on the first page.
+  if ($current_page > 0) {
+    $items['first'] = [];
+    $items['first']['attributes'] = [];
+    $options = [
+      'query' => $pager_manager->getUpdatedParameters($parameters, $element, 0),
     ];
-    $li_previous_classes = ['pager-previous'];
-    if (empty($li_previous)) {
-        $li_previous = "&nbsp;";
-        $li_previous_classes[] = 'pager-previous-empty';
-    }
-
-    $li_next = [
-        '#theme' => 'pager_previous',
-        '#text' => isset($tags['next']) ?? t('››'),
-        '#element' => $element,
-        '#interval' => 1,
-        '#parameters' => $parameters,
-    ];
-    $li_next_classes = ['pager-next'];
-    if (empty($li_next)) {
-        $li_next = '&nbsp;';
-        $li_next_classes[] = 'pager-next-empty';
-    }
-
-    $items[] = [
-        'class' => $li_previous_classes,
-        'data' => $li_previous,
-    ];
-
-    $items[] = [
-        'class' => ['pager-current'],
-        'data' => \Drupal::translation()->formatPlural($pager_current, 'Page 1', 'Page @count'),
-    ];
-
-    $items[] = [
-        'class' => $li_next_classes,
-        'data' => $li_next,
-    ];
-    return [
-        '#theme' => 'item_list',
-        '#items' => $items,
-        '#title' => NULL,
-        '#type' => 'ul',
-        '#attributes' => ['class' => ['pager', 'pager-lite']],
-    ];
-}
-
-/**
- * Implements HOOK_preprocess().
- */
-function template_preprocess_pager_lite_next($variables) {
-    $text = $variables['text'];
-    $element = $variables['element'];
-    $interval = $variables['interval'];
-    $parameters = $variables['parameters'];
-    /** @var \Drupal\Core\Pager\PagerManagerInterface $pager_manager */
-    $pager_manager = \Drupal::service('pager.manager');
-    $pager = $pager_manager->getPager($element);
-    $total_items = $pager->getTotalItems();
-
-    $output = '';
-
-    // If we are anywhere but the last page.
-    if ((isset($total_items) && $pager->getCurrentPage() <= ($total_items - 1)) || $pager->getCurrentPage()  == 0) {
-        // Needs refacto to work with drupal 9.
-        // $page_new = pager_load_array($pager->getCurrentPage() + $interval, $element, $pager_page_array);
-        $page_new = [];
-        // If the next page is the last page, mark the link as such.
-        if ($pager->getCurrentPage() == $total_items) {
-            $output = [
-                '#theme' => 'pager_last',
-                '#text' => $text,
-                '#element' => $element,
-                '#parameters' => $parameters,
-            ];
-        }
-        // The next page is not the last page.
-        else {
-            $output = [
-                '#theme' => 'pager_link',
-                '#text' => $text,
-                '#page_new' => $page_new,
-                '#element' => $element,
-                '#parameters' => $parameters,
-            ];
-        }
+    $items['first']['href'] = Url::fromRoute($route_name, $route_parameters, $options)->toString();
+    if (isset($tags[0])) {
+      $items['first']['text'] = $tags[0];
     }
 
-    return $output;
-}
-
-function pager_load_array($value, $element, $old_array) {
-    $new_array = $old_array;
-
-    // Look for empty elements.
-    for ($i = 0; $i < $element; $i++) {
-        if (empty($new_array[$i])) {
-
-            // Load found empty element with 0.
-            $new_array[$i] = 0;
-        }
+    $items['previous'] = [];
+    $items['previous']['attributes'] = [];
+    $options = [
+      'query' => $pager_manager->getUpdatedParameters($parameters, $element, $current_page - 1),
+    ];
+    $items['previous']['href'] = Url::fromRoute($route_name, $route_parameters, $options)->toString();
+    if (isset($tags[1])) {
+      $items['previous']['text'] = $tags[1];
     }
+  }
 
-    // Update the changed element.
-    $new_array[$element] = (int) $value;
-    return $new_array;
+  if ($has_next) {
+    $items['next'] = [];
+    $items['next']['attributes'] = [];
+    $options = [
+      'query' => $pager_manager->getUpdatedParameters($parameters, $element, $current_page + 1),
+    ];
+    $items['next']['href'] = Url::fromRoute($route_name, $route_parameters, $options)->toString();
+    if (isset($tags[3])) {
+      $items['next']['text'] = $tags[3];
+    }
+  }
+
+  $variables['items'] = $items;
+  $variables['heading_id'] = Html::getUniqueId('pagination-heading');
+
+  // The rendered link needs to play well with any other query parameter used
+  // on the page, like exposed filters, so for the cacheability all query
+  // parameters matter.
+  $variables['#cache']['contexts'][] = 'url.query_args';
+
 }
