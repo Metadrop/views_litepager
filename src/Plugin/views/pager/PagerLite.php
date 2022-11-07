@@ -82,23 +82,35 @@ class PagerLite extends Full {
   /**
    * Total items based on current page.
    *
-   * Always return that there are more items that the current page and
-   * calculate if there are next page after the views execution.
+   * If there are next page return the items per page multiplying it
+   * by the current page plush one, indicating that there are more
+   * items to show.
    *
    * @return float|int
    *   Total items.
    */
   public function getTotalItems() {
-    return $this->getCurrentPage() * $this->getItemsPerPage() + 1;
+    $items_per_page = $this->getItemsPerPage();
+
+    if (!($this->nextPage)) {
+      return $items_per_page;
+    }
+
+    $result = $items_per_page;
+    if ($this->getCurrentPage() == 0) {
+      $result = $items_per_page + 1;
+    }
+    elseif ($this->getCurrentPage() > 0) {
+      $result = $this->getCurrentPage() * $items_per_page + 1;
+    }
+
+    return $result;
   }
 
   /**
    * Calculate if there are next page.
-   *
-   * @param array $result
-   *   List of items after run the views query,.
    */
-  public function preRender(array &$result) {
+  public function preRender(&$result) {
 
     // If the items on the result are more than the items per page,
     // then it should exist a next page.
@@ -126,13 +138,14 @@ class PagerLite extends Full {
   /**
    * Render the pager lite.
    *
-   * @param array $input
-   *   Views input.
+   * @param mixed $input
+   *   Any extra GET parameters that should be retained, such as exposed
+   *   input.
    *
    * @return array
    *   Render array pager lite.
    */
-  public function render(array $input) {
+  public function render($input) {
 
     return [
       '#theme' => $this->themeFunctions(),
